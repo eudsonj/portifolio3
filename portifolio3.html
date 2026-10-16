@@ -1,0 +1,1420 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Portfólio de Eudson Felipe — Planeta Diário, projetos em JS, HTML, Python, jogos e apresentações." />
+    <meta name="theme-color" content="#050508" />
+    <title>Planeta Diário - Portfólio de Eudson Felipe</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Courier+Prime&family=Inter:wght@400;600;850&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ["'Playfair Display'", "Georgia", "serif"],
+              sans: ["'Inter'", "'Outfit'", "sans-serif"],
+              mono: ["'Courier Prime'", "'JetBrains Mono'", "monospace"],
+            },
+            colors: {
+              'krypton-red': '#dc2626',
+              'krypton-blue': '#0284c7',
+              'krypton-green': '#059669',
+              'krypton-dark': '#050508',
+              'emerald-arrow': '#1b5e20',
+              'daily-paper': '#0c0c0e',
+              'daily-ink': '#e0e0e0',
+              'paper-border': 'rgba(255, 255, 255, 0.1)',
+            }
+          }
+        }
+      }
+    </script>
+
+    <style>
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+      }
+      .animate-float { animation: float 6s ease-in-out infinite; }
+      .animate-pulse-slow { animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+      .daily-planet-border { border-style: double; border-width: 4px; }
+      .newspaper-border { border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
+      .newspaper-border::after {
+        content: '';
+        position: absolute;
+        bottom: -2px; right: -2px;
+        border-right: 2px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        width: 100%; height: 100%;
+        pointer-events: none;
+      }
+      .fortress-crystal {
+        background: linear-gradient(135deg, #001a33 0%, rgba(0, 229, 255, 0.15) 50%, #001a33 100%);
+        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        border: 1px solid rgba(0, 229, 255, 0.3);
+      }
+      .krypton-glow-blue { box-shadow: 0 0 25px rgba(2, 132, 199, 0.4); }
+      .krypton-glow-green { box-shadow: 0 0 25px rgba(5, 150, 105, 0.4); }
+      .krypton-glow-red { box-shadow: 0 0 25px rgba(220, 38, 38, 0.4); }
+      .crystal-bg {
+        background: linear-gradient(135deg, rgba(5, 5, 8, 0.98) 0%, rgba(0, 229, 255, 0.08) 50%, rgba(5, 5, 8, 0.98) 100%);
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        backdrop-filter: blur(12px);
+      }
+      .newspaper-clip {
+        background-color: #0c0c0e;
+        color: #e0e0e0;
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+      }
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: #050508; }
+      ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+      *:focus-visible {
+        outline: 2px solid #22d3ee;
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
+      @keyframes toast-in {
+        from { opacity: 0; transform: translate(-50%, 20px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+      }
+      .toast-enter { animation: toast-in 0.3s ease-out; }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        z-index: 999;
+        background: #22d3ee;
+        color: #000;
+        padding: 0.5rem 1rem;
+        border-radius: 0 0 8px 0;
+        font-weight: 700;
+      }
+      .skip-link:focus { left: 0; }
+    </style>
+  </head>
+  <body class="bg-[#050508] text-[#e0e0e0] min-h-screen">
+    <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="react">
+      const { useState, useEffect, useMemo, useCallback, useRef, memo } = React;
+
+      /* ============================================================
+         ICONS — Inline SVG
+         ============================================================ */
+      const ICON_PATHS = {
+        "lock": <><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+        "chevron-right": <path d="m9 18 6-6-6-6"/>,
+        "shield-alert": <><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></>,
+        "compass": <><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/></>,
+        "school": <><path d="M14 22v-4a2 2 0 1 0-4 0v4"/><path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"/><path d="M18 5v17"/><path d="m4 6 8-4 8 4"/><path d="M6 5v17"/><circle cx="12" cy="9" r="2"/></>,
+        "globe": <><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></>,
+        "code": <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></>,
+        "cpu": <><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></>,
+        "file-text": <><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></>,
+        "archive": <><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></>,
+        "smartphone": <><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></>,
+        "laptop": <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>,
+        "gamepad-2": <><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></>,
+        "search": <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
+        "external-link": <><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></>,
+        "crosshair": <><circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/></>,
+        "x": <><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>,
+      };
+
+      const Icon = memo(function Icon({ name, className = "", ...rest }) {
+        const paths = ICON_PATHS[name];
+        if (!paths) return null;
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+            aria-hidden="true"
+            focusable="false"
+            {...rest}
+          >
+            {paths}
+          </svg>
+        );
+      });
+
+      /* ============================================================
+         HOOKS
+         ============================================================ */
+      function useLocalStorage(key, initialValue, validator) {
+        const [value, setValue] = useState(() => {
+          try {
+            const saved = localStorage.getItem(key);
+            if (saved !== null && (!validator || validator(saved))) return saved;
+          } catch (_) {}
+          return initialValue;
+        });
+
+        const setAndPersist = useCallback((next) => {
+          setValue(next);
+          try { localStorage.setItem(key, next); } catch (_) {}
+        }, [key]);
+
+        return [value, setAndPersist];
+      }
+
+      /* ============================================================
+         SMALL COMPONENTS
+         ============================================================ */
+      function Typewriter({ text, speed = 15, delay = 0 }) {
+        const [displayed, setDisplayed] = useState("");
+
+        useEffect(() => {
+          setDisplayed("");
+          let intervalId = null;
+          const startId = setTimeout(() => {
+            let i = 0;
+            intervalId = setInterval(() => {
+              i++;
+              if (i <= text.length) {
+                setDisplayed(text.slice(0, i));
+              } else {
+                clearInterval(intervalId);
+                intervalId = null;
+              }
+            }, speed);
+          }, delay);
+
+          return () => {
+            clearTimeout(startId);
+            if (intervalId) clearInterval(intervalId);
+          };
+        }, [text, speed, delay]);
+
+        return (
+          <span className="font-mono text-sm leading-relaxed tracking-wide text-slate-300">
+            {displayed}
+            <span className="inline-block w-1.5 h-4 ml-1 bg-emerald-500 animate-pulse" />
+          </span>
+        );
+      }
+
+      const Toast = memo(function Toast({ message, onClose }) {
+        const onCloseRef = useRef(onClose);
+        useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+
+        useEffect(() => {
+          const id = setTimeout(() => {
+            if (typeof onCloseRef.current === "function") onCloseRef.current();
+          }, 3500);
+          return () => clearTimeout(id);
+        }, []);
+
+        return (
+          <div
+            role="status"
+            aria-live="polite"
+            className="toast-enter fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] max-w-md w-[90%] bg-[#0c0c0e] border-2 border-amber-500/40 rounded-xl px-4 py-3 shadow-2xl text-sm text-white flex items-start gap-3"
+          >
+            <span className="text-amber-400 text-lg shrink-0">📰</span>
+            <span className="flex-1 font-sans">{message}</span>
+            <button
+              onClick={onClose}
+              aria-label="Fechar notificação"
+              className="text-white/40 hover:text-white cursor-pointer"
+            >
+              <Icon name="x" className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      });
+
+      /* ============================================================
+         DATA
+         ============================================================ */
+      const PROJECTS_DATA = [
+        { id: "js-1", title: "Teste-1", category: "JS", headline: "CÓDIGO DE TESTES JAVASCRIPT EM EXECUÇÃO", byline: "Por Eudson Felipe", date: "02 de Julho de 2026", description: "Script primário de depuração em JavaScript para validação de fluxos condicionais e lógica booleana.", tags: ["JavaScript", "Lógica", "Algoritmos"], image: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/teste/blob/main/teste.js" },
+        { id: "js-2", title: "Teste-2", category: "JS", headline: "SEGUNDA ETAPA DE VALIDAÇÃO DE FUNÇÕES", byline: "Por Eudson Felipe", date: "28 de Junho de 2026", description: "Um script estendido para testes de recursão e manipulação do escopo léxico.", tags: ["JS ES6", "Framer", "Funções"], image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/teste2/blob/main/teste2.js" },
+        { id: "js-3", title: "Teste-3", category: "JS", headline: "ESTRUTURAS DE REPETIÇÃO E LOGICA AVANÇADA", byline: "Por Eudson Felipe", date: "15 de Maio de 2026", description: "Conjunto de funções anônimas criadas para validar iterações complexas e testes de estresse.", tags: ["JS ES6", "Loops", "Desempenho"], image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/teste3/blob/main/teste3.js" },
+        { id: "js-4", title: "Notas", category: "JS", headline: "SISTEMA DE ANOTAÇÕES DINÂMICAS EM VANILLA JS", byline: "Por Eudson Felipe", date: "10 de Abril de 2026", description: "Aplicação limpa e leve para gerenciamento de anotações diárias, permitindo criar, ler, e estruturar notas rápidas.", tags: ["Vanilla JS", "Anotações", "Produtividade"], image: "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/notas/blob/main/notas.js" },
+        { id: "js-5", title: "Carro-JS", category: "JS", headline: "SIMULAÇÃO FÍSICA E MOVIMENTAÇÃO DE VEÍCULOS", byline: "Por Eudson Felipe", date: "18 de Março de 2026", description: "Algoritmo em JavaScript focado na simulação física de vetores de aceleração, desaceleração e colisão de automóveis virtuais.", tags: ["Física 2D", "Vetores", "Interatividade"], image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/carro/blob/main/carro.js" },
+        { id: "js-6", title: "media.js", category: "JS", headline: "CALCULADORA DE MÉDIAS DE NOTAS ESCOLARES", byline: "Por Eudson Felipe", date: "05 de Fevereiro de 2026", description: "Implementação matemática para calcular médias escolares automáticas com tratamentos para notas inválidas e aprovação condicional.", tags: ["JS", "Matemática", "Educação"], image: "https://images.unsplash.com/photo-1518133680790-398573e6bd68?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/media/blob/main/media_SE.js" },
+        { id: "js-7", title: "variáveis", category: "JS", headline: "ESTUDO DE TIPOS E MAPEAMENTO DE VARIÁVEIS", byline: "Por Eudson Felipe", date: "12 de Janeiro de 2026", description: "Exemplificação estruturada sobre let, const, var e comportamentos de Hoisting de variáveis em escopos locais e globais.", tags: ["Fundamentos", "Hoisting", "Escopo"], image: "https://images.unsplash.com/photo-1516116211223-5c359a36298a?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/variaveis/blob/main/variaveis.js" },
+        { id: "js-8", title: "array.js", category: "JS", headline: "MANIPULAÇÃO AVANÇADA DE ARRAYS E VETORES", byline: "Por Eudson Felipe", date: "25 de Dezembro de 2025", description: "Métodos iterativos de array para manipulação de listas de dados complexas, incluindo push, pop, shift e map.", tags: ["Arrays", "Listas", "Coleções"], image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/array/blob/main/array.js" },
+        { id: "js-9", title: "brake_continue.js", category: "JS", headline: "ESTRUTURAS DE INTERRUPÇÃO E CONTROLE DE LAÇO", byline: "Por Eudson Felipe", date: "01 de Novembro de 2025", description: "Protótipos de demonstração prática do uso inteligente de break e continue para gerenciar o comportamento de loops complexos.", tags: ["Loops", "Performance", "Debugging"], image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/brake/blob/main/brake_continue.js" },
+        { id: "js-10", title: "filtrar.js", category: "JS", headline: "ALGORITMOS DE FILTRAGEM DINÂMICA DE DADOS", byline: "Por Eudson Felipe", date: "14 de Setembro de 2025", description: "Rotinas de alta performance para filtrar vetores de dados utilizando predicados e lógica condicional avançada.", tags: ["Filter", "Programação Funcional", "Dados"], image: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/filtrar/blob/main/filtrar.js" },
+        { id: "html-1", title: "Teste-HTML", category: "HTML", headline: "ESTRUTURAÇÃO SEMÂNTICA WEB EM HTML5", byline: "Por Eudson Felipe", date: "02 de Agosto de 2025", description: "Uma página inicial experimental para validação de tags semânticas, formulários web e acessibilidade em navegadores modernos.", tags: ["HTML5", "W3C", "Semântica"], image: "https://images.unsplash.com/photo-1472438971485-d6c9545f4db5?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/teste.html/blob/main/teste.html" },
+        { id: "html-2", title: "Meu Teste-HTML", category: "HTML", headline: "PÁGINA PESSOAL E INTERFACE WEB DE TESTE", byline: "Por Eudson Felipe", date: "19 de Julho de 2025", description: "Hospedagem no GitHub Pages contendo um layout web responsivo com estilo experimental e interações visuais nativas.", tags: ["GitHub Pages", "CSS", "Responsivo"], image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/teste2.html/teste2.html" },
+        { id: "py-1", title: "Projeto Python", category: "Python", headline: "ALGORITMOS DE SCRIPT E AUTOMAÇÃO EM PYTHON", byline: "Por Eudson Felipe", date: "10 de Julho de 2025", description: "Repositório dedicado ao desenvolvimento de rotinas de análise de dados, automação e lógica estruturada usando Python.", tags: ["Python", "Scripts", "Backend"], image: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/projetos.py" },
+        { id: "red-1", title: "Redação-03/03", category: "Redações Apresentações", headline: "REDAÇÃO JORNALÍSTICA PRODUZIDA EM MARÇO", byline: "Por Eudson Felipe", date: "03 de Março de 2025", description: "Artigo argumentativo completo e estruturado em HTML focado na clareza gramatical e semântica jornalística.", tags: ["Redação", "HTML Pages", "Português"], image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/redacao03-03/03.html" },
+        { id: "red-2", title: "Redação-16/03", category: "Redações Apresentações", headline: "ANÁLISE CRÍTICA E ARGUMENTAÇÃO ESCRITA", byline: "Por Eudson Felipe", date: "16 de Março de 2025", description: "Texto opinativo publicado na web explorando a coesão de ideias no cenário literário atual.", tags: ["Redação", "Literatura", "Opinião"], image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/reda-ao/reda%C3%A7ao.html" },
+        { id: "red-3", title: "Redação-22/04", category: "Redações Apresentações", headline: "DESENVOLVIMENTO DE TEXTOS INVESTIGATIVOS", byline: "Por Eudson Felipe", date: "22 de Abril de 2025", description: "Estudo crítico abordando temas contemporâneos de tecnologia e sociedade, desenvolvido com formatação semântica limpa.", tags: ["Redação", "Tecnologia", "Análise"], image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/redaco/redacao.html" },
+        { id: "ap-1", title: "APRESENTAÇÃO - Agenda Escolar", category: "Redações Apresentações", headline: "PROTÓTIPO E PLANEJAMENTO DE PRODUTO PREMIUM", byline: "Por Eudson Felipe", date: "15 de Fevereiro de 2025", description: "Apresentação executiva criada no Gamma abordando o ecossistema e funcionalidades de uma agenda escolar de alta usabilidade.", tags: ["Apresentação", "Gamma Site", "Planejamento"], image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=600", link: "https://agenda-escolar-premium-psc7xdc.gamma.site/agenda-escolar-premium" },
+        { id: "ap-2", title: "Apresentação 2", category: "Redações Apresentações", headline: "SLIDES E ANÁLISE DE PROJETO CORPORATIVO", byline: "Por Eudson Felipe", date: "10 de Janeiro de 2025", description: "Documento em PowerPoint focado em demonstrar arquitetura e objetivos de soluções de software e ferramentas modernas.", tags: ["PowerPoint", "Apresentação", "GitHub File"], image: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=600", link: "https://github.com/eudsonj/apresentacao2/blob/main/apresentacao2.pptx" },
+        { id: "port-2025", title: "PORTIFOLIO-2025", category: "portifolio antigos", headline: "ARQUIVO HISTÓRICO DE TRABALHOS DE EUDSON", byline: "Por Eudson Felipe", date: "25 de Dezembro de 2024", description: "O portfólio web completo construído para catalogar as conquistas estudantis, redações e códigos finalizados no ano anterior.", tags: ["Portfólio", "HTML/CSS", "Acervo"], image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/potifolio/index.html" },
+        { id: "port-2026", title: "Portifólio Começo de 2026", category: "portifolio antigos", headline: "PORTFÓLIO DE PROJETOS DO INÍCIO DE 2026", byline: "Por Eudson Felipe", date: "10 de Janeiro de 2026", description: "Apresentação e acervo web completo do início de 2026, consolidando soluções interativas em HTML, CSS, JavaScript e Python.", tags: ["Portfólio", "Estudos", "Projetos"], image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/portifolio/portifolio.html#" },
+        { id: "expo-1", title: "snack exoi", category: "snack expo", headline: "SIMULAÇÕES E DESENVOLVIMENTO MOBILE COM EXPO", byline: "Por Eudson Felipe", date: "15 de Outubro de 2024", description: "Aplicativo nativo experimental desenvolvido na IDE online Snack da Expo, demonstrando telas de login e listas interativas.", tags: ["React Native", "Expo Snack", "Mobile"], image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/expo/expo.html" },
+        { id: "app-1", title: "PetShop", category: "app/site", headline: "PORTAL INTERATIVO PETSHOP CARE & SAÚDE", byline: "Por Eudson Felipe", date: "12 de Setembro de 2024", description: "Site para agendamento de consultas veterinárias, banho e tosa. Desenvolvido para facilitar a rotina de donos de animais de estimação.", tags: ["HTML5", "CSS", "Interface Pet"], image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/PetShop-Care-Sa-de/index.html" },
+        { id: "app-2", title: "DuoPrograma", category: "app/site", headline: "AMBIENTE INTEGRADO DE ESTUDO DE ALGORITMOS", byline: "Por Eudson Felipe", date: "22 de Agosto de 2024", description: "Um portal educativo construído para facilitar o ensino compartilhado de conceitos básicos e lógica de programação.", tags: ["Duo", "Standalone Pages", "Educação"], image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/duoprograma/standalone.html" },
+        { id: "app-3", title: "EasyFinance", category: "app/site", headline: "SISTEMA DE CONTROLE FINANCEIRO PESSOAL", byline: "Por Eudson Felipe", date: "30 de Julho de 2024", description: "Gerenciador financeiro rápido e seguro para controle de despesas mensais, lucros e relatórios estatísticos simplificados.", tags: ["Financeiro", "Despesas", "LocalStorage"], image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/despesas/index.html" },
+        { id: "app-4", title: "ClassBehavior", category: "app/site", headline: "SISTEMA DE MONITORAMENTO DE COMPORTAMENTO EM SALA", byline: "Por Eudson Felipe", date: "10 de Junho de 2024", description: "Aplicativo para professores acompanharem e avaliarem dinamicamente o comportamento, participação e progresso de estudantes.", tags: ["Educação", "Frequência", "Gamificação"], image: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&q=80&w=600", link: "https://classbehavior.onrender.com/" },
+        { id: "app-frotacontrol", title: "FrotaControl", category: "app/site", headline: "SISTEMA DE GERENCIAMENTO DE ABASTECIMENTO E CONTROLE DE FROTA", byline: "Por Eudson Felipe", date: "09 de Julho de 2026", description: "Plataforma web avançada para controle de abastecimentos de veículos, acompanhamento de despesas de combustível, controle de quilometragem e gestão integrada de frota corporativa ou pessoal.", tags: ["Abastecimento", "Gestão de Frota", "Combustível", "Dashboard"], image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=600", link: "https://abastecimento-qdn7.onrender.com/" },
+
+        /* ✅ NOVO PROJETO ADICIONADO NA CATEGORIA app/site */
+        { id: "app-gestao-escolar", title: "Gestão Escolar", category: "app/site", headline: "PLATAFORMA INTEGRADA DE GESTÃO ESCOLAR E ADMINISTRAÇÃO ACADÊMICA", byline: "Por Eudson Felipe", date: "16 de Outubro de 2026", description: "Sistema web completo para gestão escolar com autenticação de usuários, controle de turmas, lançamento de notas, frequência de alunos e painel administrativo unificado para instituições de ensino.", tags: ["Gestão Escolar", "Login", "Dashboard", "Base44"], image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&q=80&w=600", link: "https://gestao-escolar-313a2e69.base44.app/login" },
+
+        { id: "game-1", title: "pac-man", category: "jogos", headline: "RECREAÇÃO DO ARCADIA RETRO CLÁSSICO", byline: "Por Eudson Felipe", date: "14 de Maio de 2024", description: "Remake interativo do icônico Pac-Man contendo o labirinto clássico, fantasmas e controle direcional nativo.", tags: ["Jogos", "Retro Arcade", "HTML5"], image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=600", link: "" },
+        { id: "game-2", title: "carros", category: "jogos", headline: "MINIJOGO DE CORRIDA URBANA E DESVIOS", byline: "Por Eudson Felipe", date: "25 de Abril de 2024", description: "Um divertido jogo de corrida arcade em 2D de alta velocidade no qual o usuário controla um carro desviando de obstáculos na pista.", tags: ["Jogos", "Corrida", "HTML5 Canvas"], image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/teste-jogo/index.htm" },
+        { id: "game-3", title: "Road-Rush-2", category: "jogos", headline: "SEQUÊNCIA DO JOGO DE CORRIDA ROAD RUSH", byline: "Por Eudson Felipe", date: "05 de Março de 2024", description: "Segunda parte do jogo de corrida Road Rush, com novos obstáculos, maior dificuldade e jogabilidade refinada em HTML5 Canvas.", tags: ["Road Rush", "Corrida", "HTML5 Canvas"], image: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=600", link: "https://eudsonj.github.io/Road-Rush-2/jogo-part2.html" }
+      ];
+
+      const MOTIVATIONAL_PHRASES = [
+        "Não é porque deu errado uma vez que você não vai se dar uma segunda chance.",
+        "Não precisa ser definido pelo seu passado. Você pode escolher um futuro diferente.",
+        "Mãe, se você pudesse enxergar tudo, até o que não quisesse ver, o que você faria? Aprenderia a fechar os olhos.",
+        "Às vezes até os heróis precisam ser salvos.",
+        "Você passou sua vida tomando decisões pensando nos outros, está na hora de tomar decisões pensando em você.",
+        "Nunca vai desistir de alguém, pois sua maior força pode ser sua maior fraqueza, sua esperança.",
+        "O que temos que fazer, o coração não pode estar vazio. – Carter Hall",
+        "Se você não se abrir com quem mais te ama, ficará sozinho!",
+        "Nós sempre temos escolhas!",
+        "O medo não deve superar o amor.",
+        "O sentimento é totalmente diferente quando é correspondido.",
+        "Só porque você tem o mesmo sangue em suas veias isso não faz de você família.",
+        "A vida é tão preciosa... Poder proteger isso é um dom incrível!",
+        "Se você realmente gosta de alguém, você aceita cada parte dela.",
+        "Não posso viver em um mundo que você não me ame.",
+        "Apesar de todo o poder do sol, ainda será noite na metade do mundo.",
+        "Deve dar medo achar que alguém no mundo tem um plano pra você e você ainda não saber qual é!",
+        "Deus está na eternidade e o diabo está nos detalhes.",
+        "A vida de ninguém é perfeita.",
+        "Quando eu percebi que o bem e o mal eram cinza, as histórias perderam a magia.",
+        "Eu não me encaixo aqui. Minha jornada é em outro lugar.",
+        "Percepção pode ser a diferença a vida e a morte.",
+        "Se sente responsável por tudo, mas não pode guardar tudo ai dentro, sente necessidade de carregar o mundo nas costas, e isso é nobre, mas há outras pessoas que querem lhe ajudar nessa luta pelo bem e precisa dessa ajuda.",
+        "Você é o cara com que as pessoas podem contar, sejam amigos ou estranhos, você sempre ajuda, isso é raro.",
+        "O amor encontra uma maneira de cegar até mesmo as mentes mais perspicazes. Nós não vemos porque não queremos ver, mas uma vez que o amor se vai, nós podemos ver a pessoa claramente.",
+        "Na vida o que realmente vale a pena demora e custa a alcançar, por isso não desista à primeira dificuldade.",
+        "Muitas vezes a vida é arriscar tudo por algo que ninguém mais pode ver além de você. Acredite nos seus sonhos!",
+        "Os dias cinzentos existem para você os colorir.",
+        "A vida é passageira, mas o seu legado pode ser eterno.",
+        "Saber viver é difícil, às vezes dói, custa, mas enquanto lutarmos, estamos mais próximos das grandes conquistas.",
+        "Só se aprende a andar, caindo, por isso, nunca deixe de tentar. Se cair, só tem que levantar.",
+        "Seu sucesso é fruto da sua persistência e competência. Com foco tudo é possível.",
+        "Nada é impossível com a mentalidade e a motivação certa.",
+        "Se quer viver uma vida feliz, amarre-se a uma meta, não a pessoas nem a coisas. – Albert Einstein",
+        "Se ao enfrentar os problemas da vida lhe parecer que está escalando uma montanha impossível, lembre-se que a paisagem que avistará no topo compensará qualquer esforço seu.",
+        "O tempo não para e a vida continua, e é preciso correr para não ficar para trás. Às vezes a atitude mais ousada que podemos ter é apenas não desistir.",
+        "Neste jogo da vida o maior vencedor é aquele que luta até ao fim.",
+        "Arrisque, vá em frente e sem medo! Não há motivação maior do que descobrir quão corajosos conseguimos ser.",
+        "Entre as dificuldades, escondem-se as oportunidades.",
+        "O que te faz feliz é o que você precisa escolher todos os dias.",
+        "O bom da vida é que quem controla sua reação perante as situações é você mesmo.",
+        "A vida é como andar de bicicleta. Para ter equilíbrio, você tem que se manter em movimento...",
+        "Se as montanhas da vida forem altas demais, de passo em passo, aprenda a escalá-las até chegar ao topo. O importante é o processo.",
+        "Os desafios movimentam a vida. Não tenha medo deles porque eles são seus aliados.",
+        "Seja a mudança que você quer ver no mundo.",
+        "Não lamente o que passou. Erga a cabeça e foque no que ainda dá para fazer.",
+        "A melhor maneira de prever o futuro é criá-lo.",
+        "Nada é em vão. Aprenda a valorizar absolutamente tudo o que te acontece.",
+        "Quem foca em desenvolver a própria vida não desanima se comparando com os outros.",
+        "Viver é desenhar sem borracha."
+      ];
+
+      const CATEGORIES = [
+        { name: "Colégio Unidade Polo", icon: "school", color: "text-red-400" },
+        { name: "Todos", icon: "globe", color: "text-blue-400" },
+        { name: "HTML", icon: "code", color: "text-amber-500" },
+        { name: "JS", icon: "cpu", color: "text-yellow-400" },
+        { name: "Python", icon: "code", color: "text-blue-500" },
+        { name: "Redações Apresentações", icon: "file-text", color: "text-purple-400" },
+        { name: "portifolio antigos", icon: "archive", color: "text-emerald-500" },
+        { name: "snack expo", icon: "smartphone", color: "text-indigo-400" },
+        { name: "app/site", icon: "laptop", color: "text-pink-400" },
+        { name: "jogos", icon: "gamepad-2", color: "text-red-500" }
+      ];
+
+      const STACKS = [
+        { name: "Python", color: "bg-emerald-950/40 border-emerald-500/40 text-emerald-400", emoji: "🐍" },
+        { name: "JavaScript", color: "bg-amber-950/40 border-amber-500/40 text-amber-400", emoji: "📜" },
+        { name: "HTML", color: "bg-blue-950/40 border-blue-500/40 text-blue-400", emoji: "🌐" },
+        { name: "Game Dev", color: "bg-purple-950/40 border-purple-500/40 text-purple-400", emoji: "🎮" },
+        { name: "Séries", color: "bg-sky-950/40 border-sky-500/40 text-sky-400", emoji: "📺" },
+        { name: "Lógica", color: "bg-pink-950/40 border-pink-500/40 text-pink-400", emoji: "🧠" },
+      ];
+
+      const HOURS_DATA = [
+        { day: "segunda-feira", hours: "07:30–11:30, 13:00–17:00", open: true },
+        { day: "terça-feira", hours: "07:30–11:30, 13:00–17:00", open: true },
+        { day: "quarta-feira", hours: "07:30–11:30, 13:00–17:00", open: true },
+        { day: "quinta-feira", hours: "07:30–11:30, 13:00–17:00", open: true },
+        { day: "sexta-feira", hours: "07:30–11:30, 13:00–17:00", open: true },
+        { day: "sábado", hours: "Fechado", open: false },
+        { day: "domingo", hours: "Fechado", open: false },
+      ];
+
+      const SYLLABUS = {
+        ads: {
+          title: "Matriz Curricular do Ensino Técnico - ADS",
+          columns: [
+            { header: "1º Ano: Fundamentos", items: ["Introdução à Programação (HTML/CSS)", "Lógica e Algoritmos", "Arquitetura de Computadores"] },
+            { header: "2º Ano: Desenvolvimento", items: ["Programação JavaScript e Python", "Banco de Dados Relacionais", "Engenharia de Software Básica"] },
+            { header: "3º Ano: Projetos", items: ["Desenvolvimento Web Fullstack", "Sistemas Operacionais", "Projeto Técnico Conclusivo"] },
+          ],
+        },
+        ia: {
+          title: "Grade Técnico de Inteligência Artificial",
+          columns: [
+            { header: "Módulo I: Dados", items: ["Tratamento de Dados com Python", "Fundamentos de Estatística", "Lógica para Inteligência Artificial"] },
+            { header: "Módulo II: Modelagem", items: ["Machine Learning Prático", "Modelagem de Redes Neurais", "Treinamento de Redes Convolucionais"] },
+            { header: "Módulo III: Linguagem & Visão", items: ["Processamento de Linguagem Natural", "Visão Computacional e Aplicações", "Ética e Implementação de Modelos"] },
+          ],
+        },
+      };
+
+      /* ============================================================
+         SECTION COMPONENTS
+         ============================================================ */
+
+      const CategoryButton = memo(function CategoryButton({ cat, isActive, count, onClick }) {
+        return (
+          <button
+            onClick={onClick}
+            aria-pressed={isActive}
+            className={`group relative px-3.5 py-2.5 rounded-lg font-sans text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer overflow-hidden ${
+              isActive
+                ? "bg-white text-black shadow-md transform scale-105 z-10"
+                : "bg-white/5 text-white/80 hover:text-white hover:bg-white/10 border border-white/10"
+            }`}
+          >
+            <Icon name={cat.icon} className={`w-4 h-4 transition-transform group-hover:scale-125 ${cat.color}`} />
+            <span>{cat.name}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+              isActive ? "bg-black/10 text-black" : "bg-white/15 text-white/70 group-hover:bg-white/25"
+            }`}>
+              {count}
+            </span>
+          </button>
+        );
+      });
+
+      const ThemeToggle = memo(function ThemeToggle({ theme, setTheme, options }) {
+        return (
+          <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-full border border-white/10">
+            <span className="text-[9px] font-mono text-white/50 uppercase tracking-widest pl-2">Tema:</span>
+            {options.map((opt) => {
+              const active = theme === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setTheme(opt.value)}
+                  aria-pressed={active}
+                  className={`px-2.5 py-1 rounded-full text-[9px] font-sans font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
+                    active ? opt.activeClass : "text-white/60 hover:text-white bg-white/5"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${opt.dotClass}`} />
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        );
+      });
+
+      const ProjectCard = memo(function ProjectCard({ proj, isSelected, theme, onSelect }) {
+        return (
+          <article
+            onClick={() => onSelect(proj)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(proj); } }}
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected}
+            className={`group cursor-pointer rounded-xl overflow-hidden border transition-all text-left flex flex-col justify-between newspaper-border transform hover:-translate-y-1 ${
+              isSelected
+                ? theme === "blue"
+                  ? "bg-[#070b14] border-cyan-400/40 shadow-lg krypton-glow-blue"
+                  : "bg-[#141416] border-white/30 shadow-lg shadow-white/10"
+                : "bg-[#0c0c0e] border-white/10 hover:border-white/20"
+            }`}
+          >
+            <div className="h-44 overflow-hidden relative">
+              <img
+                src={proj.image}
+                alt={proj.title}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+              />
+              <div className="absolute top-2 right-2 bg-black/90 text-amber-400 border border-white/10 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase">
+                {proj.category}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent" />
+              <div className="absolute bottom-2 left-3">
+                <span className="text-[10px] font-mono text-white/50 uppercase tracking-widest">{proj.date}</span>
+              </div>
+            </div>
+
+            <div className="p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <p className="font-serif text-xs font-black tracking-wider text-red-400 uppercase mb-1 line-clamp-1 border-b border-dashed border-white/10 pb-1">
+                  {proj.headline}
+                </p>
+                <h4 className="font-serif text-lg font-bold text-white group-hover:text-amber-400 transition-colors mt-2 mb-2">
+                  {proj.title}
+                </h4>
+                <p className="text-xs text-white/50 font-sans italic mb-3">{proj.byline}</p>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 mt-auto">
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {proj.tags.map((tag) => (
+                    <span key={tag} className="text-[10px] font-sans px-2 py-0.5 bg-white/5 border border-white/10 text-white/50 rounded">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+
+                <a
+                  href={proj.link || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full py-2.5 bg-black hover:bg-zinc-900 text-white hover:text-yellow-400 font-bold rounded-lg border-2 border-zinc-800 hover:border-amber-500 text-xs font-sans uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md shadow-black hover:shadow-amber-500/10 cursor-pointer group/btn"
+                >
+                  <span className="font-serif font-black bg-gradient-to-br from-yellow-400 to-amber-500 text-red-600 rounded-full w-4 h-4 flex items-center justify-center text-[10px] shadow-sm select-none border border-red-600 group-hover/btn:scale-110 transition-transform">S</span>
+                  <span>Abrir Projeto</span>
+                  <Icon name="external-link" className="w-3.5 h-3.5 text-zinc-500 group-hover/btn:text-yellow-400 transition-colors" />
+                </a>
+              </div>
+            </div>
+          </article>
+        );
+      });
+
+      const SyllabusDrawer = memo(function SyllabusDrawer({ data, poloTheme }) {
+        const accent = poloTheme === "blue" ? "text-blue-400" : "text-red-400";
+        const border = poloTheme === "blue" ? "border-blue-500/30 bg-[#040810]" : "border-red-500/30 bg-[#0d0407]";
+        return (
+          <div className={`rounded-xl border p-5 transition-all duration-500 ${border}`}>
+            <h5 className={`font-serif text-base font-bold mb-3 uppercase transition-colors duration-500 ${accent}`}>{data.title}</h5>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-sans text-slate-300">
+              {data.columns.map((col) => (
+                <div key={col.header} className="p-3 rounded bg-black/40 border border-white/5">
+                  <h6 className="font-bold text-white mb-2 uppercase text-[10px] tracking-wider">{col.header}</h6>
+                  <ul className="space-y-1.5 list-disc list-inside text-slate-400">
+                    {col.items.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      });
+
+      const GreenArrowPanel = memo(function GreenArrowPanel({
+        selectedCategory, poloTheme, generalTheme,
+        arrowTargetsHit, greenArrowUnlockedSecrets, arrowStatusText, motivationalPhrase,
+        onShoot, onReset, onNewPhrase,
+      }) {
+        const isPolo = selectedCategory === "Colégio Unidade Polo";
+
+        const wrapClass = isPolo
+          ? (poloTheme === "blue"
+            ? "bg-gradient-to-br from-[#060a12] via-[#010205] to-[#03050c] border-2 border-blue-500/40 krypton-glow-blue"
+            : "bg-gradient-to-br from-[#100608] via-[#050102] to-[#0c0305] border-2 border-red-500/40 krypton-glow-red")
+          : (generalTheme === "blue"
+            ? "bg-[#0c0c0e] border border-blue-500/20 shadow-lg shadow-blue-500/5"
+            : "bg-[#0c0c0e] border border-white/10 shadow-lg");
+
+        const boxBg = isPolo
+          ? (poloTheme === "blue" ? "bg-[#03050c]/80 border-blue-500/20" : "bg-[#0c0305]/80 border-red-500/20")
+          : (generalTheme === "blue" ? "bg-[#03050c]/80 border-blue-500/20" : "bg-black/40 border-white/5");
+
+        const badgeClass = isPolo
+          ? (poloTheme === "blue"
+            ? "bg-blue-500/10 border-blue-500/30 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.15)]"
+            : "bg-red-500/10 border-red-500/30 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.15)]")
+          : (generalTheme === "blue"
+            ? "bg-blue-500/10 border-blue-500/30 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.15)]"
+            : "bg-zinc-500/10 border-zinc-500/30 text-zinc-400");
+
+        const statusBg = isPolo
+          ? (poloTheme === "blue" ? "bg-blue-950/20 border border-blue-900/30 text-blue-200/90" : "bg-red-950/20 border border-red-900/30 text-red-200/90")
+          : (generalTheme === "blue" ? "bg-blue-950/20 border border-blue-900/30 text-blue-200/90" : "bg-zinc-900/50 border border-zinc-800/30 text-zinc-400");
+
+        const secretBg = isPolo
+          ? (poloTheme === "blue" ? "bg-blue-950/40 border-blue-500/50 text-blue-100" : "bg-red-950/40 border-red-500/50 text-red-100")
+          : (generalTheme === "blue" ? "bg-blue-950/40 border-blue-500/50 text-blue-100" : "bg-zinc-900/60 border border-white/10 text-zinc-200");
+
+        const targetBase = isPolo
+          ? (poloTheme === "blue"
+            ? "bg-[#0b0e14] border-blue-700 hover:border-blue-500 text-blue-500 hover:text-blue-300 animate-pulse"
+            : "bg-[#140b0e] border-red-700 hover:border-red-500 text-red-500 hover:text-red-300 animate-pulse")
+          : (generalTheme === "blue"
+            ? "bg-[#0b0e14] border-blue-700 hover:border-blue-500 text-blue-500 hover:text-blue-300 animate-pulse"
+            : "bg-[#141517] border-zinc-700 hover:border-zinc-500 text-zinc-500 hover:text-zinc-300");
+
+        const targetHit = isPolo
+          ? (poloTheme === "blue" ? "bg-blue-950 border-blue-500 text-blue-300 cursor-default" : "bg-red-950 border-red-500 text-red-300 cursor-default")
+          : (generalTheme === "blue" ? "bg-blue-950 border-blue-500 text-blue-300 cursor-default" : "bg-zinc-800 border-zinc-500 text-zinc-200 cursor-default");
+
+        const newPhraseClass = isPolo
+          ? (poloTheme === "blue" ? "bg-blue-800 hover:bg-blue-700 border-blue-500/35 text-white" : "bg-red-800 hover:bg-red-700 border-red-500/35 text-white")
+          : (generalTheme === "blue" ? "bg-blue-800 hover:bg-blue-700 border-blue-500/35 text-white" : "bg-zinc-700 hover:bg-zinc-600 border-white/10 text-zinc-100");
+
+        return (
+          <div className={`rounded-2xl p-6 text-left relative overflow-hidden transition-all duration-500 ${wrapClass}`}>
+            <div className="absolute top-2 right-2 flex gap-1">
+              <div className={`w-1.5 h-1.5 rounded-full animate-ping ${
+                isPolo
+                  ? (poloTheme === "blue" ? "bg-blue-500" : "bg-red-500")
+                  : (generalTheme === "blue" ? "bg-blue-500" : "bg-zinc-500")
+              }`} />
+              <span className={`text-[8px] font-mono ${
+                isPolo
+                  ? (poloTheme === "blue" ? "text-blue-400" : "text-red-400")
+                  : (generalTheme === "blue" ? "text-blue-400" : "text-zinc-500")
+              }`}>
+                {isPolo ? "POLO TECH LAB" : "NEUTRAL PORTFOLIO WIDGET"}
+              </span>
+            </div>
+
+            <div className={`border p-4 rounded-xl mb-4 text-center mt-4 transition-all duration-500 ${boxBg}`}>
+              <div className="mb-2.5">
+                <span className={`text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${badgeClass}`}>
+                  🎮 mini game "frases motivacional"
+                </span>
+              </div>
+              <p className={`text-[10px] font-mono mb-3 uppercase tracking-wider ${
+                isPolo
+                  ? (poloTheme === "blue" ? "text-blue-400" : "text-red-400")
+                  : (generalTheme === "blue" ? "text-blue-400" : "text-zinc-400")
+              }`}>
+                {isPolo ? "MIRA DO SATÉLITE DA ESCOLA" : "MIRA DO SATÉLITE NEUTRO"}
+              </p>
+
+              <div className="flex justify-around items-center my-4 gap-2">
+                {[1, 2, 3].map((num) => {
+                  const isHit = arrowTargetsHit.includes(num);
+                  return (
+                    <button
+                      key={num}
+                      onClick={() => onShoot(num)}
+                      aria-label={`Alvo ${num}${isHit ? " (atingido)" : ""}`}
+                      className={`relative w-12 h-12 rounded-full border-4 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 cursor-pointer ${isHit ? targetHit : targetBase}`}
+                    >
+                      <Icon name="crosshair" className="w-6 h-6" />
+                      <span className="absolute text-[8px] font-mono font-black bottom-1">{num}</span>
+                      {isHit && <span className="absolute -top-1 -right-1 text-xs">🎯</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className={`text-[11px] font-mono p-2 rounded h-10 flex items-center justify-center transition-all duration-500 ${statusBg}`}>
+                {arrowStatusText}
+              </div>
+            </div>
+
+            {greenArrowUnlockedSecrets && (
+              <div className={`border-2 p-5 rounded-xl space-y-4 transition-all duration-500 ${secretBg}`}>
+                <div className={`flex items-center gap-2 border-b pb-2 ${
+                  isPolo
+                    ? (poloTheme === "blue" ? "border-blue-500/30" : "border-red-500/30")
+                    : (generalTheme === "blue" ? "border-blue-500/30" : "border-white/10")
+                }`}>
+                  <span className="text-xl">✨</span>
+                  <h4 className={`font-serif text-sm font-bold uppercase tracking-wider ${
+                    isPolo
+                      ? (poloTheme === "blue" ? "text-blue-400" : "text-red-400")
+                      : (generalTheme === "blue" ? "text-blue-400" : "text-zinc-300")
+                  }`}>
+                    Mensagem Motivacional Desbloqueada
+                  </h4>
+                </div>
+
+                <div className={`py-3 px-4 rounded-lg italic font-serif text-sm text-center leading-relaxed shadow-inner ${
+                  isPolo
+                    ? (poloTheme === "blue" ? "bg-black/50 border border-blue-500/20 text-blue-200" : "bg-black/50 border border-red-500/20 text-red-200")
+                    : (generalTheme === "blue" ? "bg-black/50 border border-blue-500/20 text-blue-200" : "bg-black/40 border border-white/5 text-zinc-300")
+                }`}>
+                  &ldquo;{motivationalPhrase}&rdquo;
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={onNewPhrase}
+                    className={`flex-1 py-2 font-mono text-[10px] font-bold rounded uppercase cursor-pointer transition-all flex items-center justify-center gap-1 border ${newPhraseClass}`}
+                  >
+                    <span>🔄 Nova Frase</span>
+                  </button>
+                  <button
+                    onClick={onReset}
+                    className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 text-slate-400 border border-white/5 font-mono text-[10px] font-bold rounded uppercase cursor-pointer transition-all"
+                  >
+                    Limpar Alvos
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className={`mt-4 pt-3 border-t flex justify-between text-[10px] font-mono transition-all duration-500 ${
+              isPolo
+                ? (poloTheme === "blue" ? "border-blue-950 text-blue-500/70" : "border-red-950 text-red-500/70")
+                : (generalTheme === "blue" ? "border-blue-950 text-blue-500/70" : "border-zinc-800/50 text-zinc-600")
+            }`}>
+              <span>DISPOSITIVO: CROSSBOW MK VII</span>
+              <span>STATUS: CARREGADO</span>
+            </div>
+          </div>
+        );
+      });
+
+      /* ============================================================
+         MAIN APP
+         ============================================================ */
+      function App() {
+        const [isUnlocked, setIsUnlocked] = useState(true);
+        const [passcode, setPasscode] = useState("");
+        const [loginError, setLoginError] = useState("");
+        const [isActivatingKey, setIsActivatingKey] = useState(false);
+
+        const [selectedCategory, setSelectedCategory] = useState("Colégio Unidade Polo");
+        const [searchQuery, setSearchQuery] = useState("");
+        const [selectedProject, setSelectedProject] = useState(PROJECTS_DATA[0]);
+        const [activeSyllabus, setActiveSyllabus] = useState(null);
+        const [toast, setToast] = useState(null);
+
+        const [arrowTargetsHit, setArrowTargetsHit] = useState([]);
+        const [greenArrowUnlockedSecrets, setGreenArrowUnlockedSecrets] = useState(false);
+        const [arrowStatusText, setArrowStatusText] = useState("Aguardando disparo de flecha...");
+        const [motivationalPhrase, setMotivationalPhrase] = useState("");
+
+        const [poloTheme, setPoloTheme] = useLocalStorage(
+          "poloTheme", "red", (v) => v === "blue" || v === "red"
+        );
+        const [generalTheme, setGeneralTheme] = useLocalStorage(
+          "generalTheme", "blue", (v) => v === "blue" || v === "neutral"
+        );
+
+        const [readerName, setReaderName] = useState("Convidado Especial");
+        const [isEditingReader, setIsEditingReader] = useState(false);
+
+        const showToast = useCallback((msg) => setToast(msg), []);
+
+        const currentDateFormatted = useMemo(() => {
+          const today = new Date();
+          const cap = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+          const weekday = cap(today.toLocaleDateString("pt-BR", { weekday: "long" }));
+          const day = today.toLocaleDateString("pt-BR", { day: "2-digit" });
+          const month = cap(today.toLocaleDateString("pt-BR", { month: "long" }));
+          const year = today.toLocaleDateString("pt-BR", { year: "numeric" });
+          return `${weekday}, ${day} de ${month} de ${year}`;
+        }, []);
+
+        const categoryCounts = useMemo(() => {
+          const counts = {};
+          for (const p of PROJECTS_DATA) counts[p.category] = (counts[p.category] || 0) + 1;
+          counts["Todos"] = PROJECTS_DATA.length;
+          counts["Colégio Unidade Polo"] = 1;
+          return counts;
+        }, []);
+
+        const filteredProjects = useMemo(() => {
+          const q = searchQuery.trim().toLowerCase();
+          return PROJECTS_DATA.filter((proj) => {
+            const matchesCat = selectedCategory === "Todos" || proj.category === selectedCategory;
+            if (!matchesCat) return false;
+            if (!q) return true;
+            return (
+              proj.title.toLowerCase().includes(q) ||
+              proj.description.toLowerCase().includes(q) ||
+              proj.headline.toLowerCase().includes(q)
+            );
+          });
+        }, [selectedCategory, searchQuery]);
+
+        const triggerUnlockSequence = useCallback(() => {
+          setIsActivatingKey(true);
+          setLoginError("");
+          setTimeout(() => { setIsUnlocked(true); setIsActivatingKey(false); }, 1800);
+        }, []);
+
+        const handleLoginSubmit = (e) => {
+          e.preventDefault();
+          const clean = passcode.trim().toLowerCase();
+          if (["kal-el", "clark", "smallville", "jor-el", "superman"].includes(clean)) {
+            triggerUnlockSequence();
+          } else {
+            setLoginError("Assinatura Biométrica Inválida. Tente 'Kal-El' ou 'Smallville'.");
+          }
+        };
+
+        const handleCategoryClick = useCallback((category) => {
+          setSelectedCategory(category);
+          const first = PROJECTS_DATA.find((p) => category === "Todos" || p.category === category);
+          if (first) setSelectedProject(first);
+        }, []);
+
+        const shootTarget = useCallback((targetId) => {
+          setArrowTargetsHit((prev) => prev.includes(targetId) ? prev : [...prev, targetId]);
+          setGreenArrowUnlockedSecrets(true);
+          setMotivationalPhrase(MOTIVATIONAL_PHRASES[Math.floor(Math.random() * MOTIVATIONAL_PHRASES.length)]);
+          const labels = { 1: "🎯 Alvo 1 Atingido! Nova Mensagem Motivacional Desbloqueada!", 2: "🎯 Alvo 2 Neutralizado! Nova Mensagem Motivacional Desbloqueada!", 3: "🎯 Alvo 3 Derrubado! Nova Mensagem Motivacional Desbloqueada!" };
+          setArrowStatusText(labels[targetId] || "Alvo atingido!");
+        }, []);
+
+        const resetArcheryTargets = useCallback(() => {
+          setArrowTargetsHit([]);
+          setGreenArrowUnlockedSecrets(false);
+          setArrowStatusText("Arco tensionado. Mire nos alvos rotativos!");
+        }, []);
+
+        const refreshMotivationalPhrase = useCallback(() => {
+          setMotivationalPhrase(MOTIVATIONAL_PHRASES[Math.floor(Math.random() * MOTIVATIONAL_PHRASES.length)]);
+        }, []);
+
+        const isPolo = selectedCategory === "Colégio Unidade Polo";
+
+        return (
+          <div className="min-h-screen font-sans bg-[#050508] text-[#e0e0e0] flex flex-col selection:bg-emerald-500 selection:text-black relative">
+            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-cyan-950/20 to-transparent pointer-events-none z-0" />
+            <div className="absolute top-1/2 right-0 w-96 h-96 bg-emerald-950/10 rounded-full blur-3xl pointer-events-none z-0" />
+
+            {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+
+            {!isUnlocked ? (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 crystal-bg overflow-y-auto">
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                  <div className="absolute -bottom-10 left-10 w-48 h-96 bg-cyan-500/10 skew-x-12 blur-md animate-pulse" />
+                  <div className="absolute -bottom-20 right-20 w-64 h-[500px] bg-sky-500/10 -skew-x-12 blur-lg animate-pulse-slow" />
+                  <div className="absolute top-10 left-1/3 w-2 h-96 bg-cyan-300/20 transform rotate-45 blur-sm" />
+                  <div className="absolute top-20 right-1/4 w-4 h-[600px] bg-blue-300/15 transform -rotate-45 blur-sm" />
+                </div>
+
+                <div className="relative w-full max-w-2xl bg-[#070b14] border border-white/10 rounded-2xl p-6 md:p-10 shadow-2xl krypton-glow-blue text-center">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-20 h-20 rounded-full border border-cyan-400/50 flex items-center justify-center bg-[#001326]">
+                      <div className="w-12 h-12 rounded-full border border-dashed border-cyan-400/55 flex items-center justify-center">
+                        <span className="font-serif text-2xl font-bold text-cyan-400">S</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h2 className="font-serif text-3xl md:text-4xl tracking-widest text-white uppercase mb-2">
+                    Fortaleza da Solidão
+                  </h2>
+                  <p className="text-xs text-white/50 max-w-md mx-auto mb-8 font-sans uppercase tracking-widest">
+                    [ SISTEMA DE DEFESA BIOMÉTRICO KRYPTONIANO ]
+                  </p>
+
+                  <div className="bg-[#050508] border border-white/10 rounded-xl p-6 mb-8 relative overflow-hidden">
+                    <div className="absolute top-2 left-2 flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                      <span className="text-[9px] font-mono text-cyan-400">ACTIVE DETECTOR</span>
+                    </div>
+
+                    <p className="text-xs text-slate-300 mb-4 font-sans">
+                      Clique na fenda octogonal abaixo para encaixar a <strong className="text-cyan-400">Chave de Fenda Hexagonal de Clark Kent</strong> ou digite suas credenciais.
+                    </p>
+
+                    <div className="flex justify-center my-6">
+                      <button
+                        onClick={triggerUnlockSequence}
+                        disabled={isActivatingKey}
+                        aria-label="Encaixar chave octogonal"
+                        className="relative w-24 h-24 fortress-crystal flex items-center justify-center shadow-lg cursor-pointer transform rotate-45 hover:scale-110 active:scale-95 transition-transform disabled:opacity-60"
+                      >
+                        <div className="transform -rotate-45 text-slate-900 flex flex-col items-center">
+                          <Icon name="lock" className="w-6 h-6 mb-1 text-cyan-400" />
+                          <span className="text-[8px] font-black tracking-wider uppercase text-cyan-400">ENCAIXAR</span>
+                        </div>
+                      </button>
+                    </div>
+
+                    <div className="text-[11px] font-mono text-cyan-400/80 animate-pulse">
+                      {isActivatingKey ? "✨ ALINHANDO REDE DE CRISTAIS..." : "⚡ ENTRADA AUXILIAR POR CHAVE DISPONÍVEL"}
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleLoginSubmit} className="max-w-md mx-auto">
+                    <div className="flex flex-col gap-2 mb-4">
+                      <label htmlFor="passcode" className="text-left text-xs font-mono text-slate-400 uppercase tracking-wider block">
+                        Assinatura de Nome Kryptoniano ou Humano:
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="passcode"
+                          type="text"
+                          value={passcode}
+                          onChange={(e) => setPasscode(e.target.value)}
+                          placeholder="Ex: Kal-El ou Smallville"
+                          className="w-full px-4 py-3 bg-[#081124] border border-sky-400/30 rounded-lg focus:outline-none focus:border-sky-400 text-center text-sky-200 font-mono placeholder:text-slate-600 tracking-widest text-lg uppercase"
+                        />
+                        <div className="absolute right-3 top-3.5 pointer-events-none">
+                          <Icon name="chevron-right" className="w-5 h-5 text-sky-400/50" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {loginError && (
+                      <div role="alert" className="flex items-center gap-2 justify-center p-3 mb-4 rounded-lg bg-red-950/40 border border-red-500/40 text-red-300 text-xs text-left animate-pulse">
+                        <Icon name="shield-alert" className="w-4 h-4 shrink-0" />
+                        <span>{loginError}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-xs font-mono text-slate-400 pt-2 border-t border-slate-800/60">
+                      <span>BIOMETRIA: CLARKKENT@DAILYPLANET.COM</span>
+                      <span className="text-sky-400">Jor-El 1.0_PRO</span>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isActivatingKey}
+                      className="w-full mt-6 py-3 px-6 bg-gradient-to-r from-sky-600 to-sky-800 hover:from-sky-500 hover:to-sky-700 text-white font-mono rounded-lg transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer border border-sky-400/40 uppercase tracking-widest text-sm disabled:opacity-60"
+                    >
+                      <Icon name="compass" className="w-4 h-4 animate-spin" />
+                      {isActivatingKey ? "Decodificando..." : "Materializar Acesso"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col z-10">
+                <header className="border-b-4 border-white/20 bg-[#0a0a0c] pt-8 pb-4 px-4 md:px-8 relative">
+                  <div className="max-w-7xl mx-auto">
+                    <div className="flex flex-col md:flex-row justify-between items-center text-xs font-sans tracking-widest text-white/50 border-b border-white/10 pb-3 mb-4 gap-2 uppercase">
+                      <div className="flex items-center gap-4">
+                        <span className="px-2 py-0.5 bg-red-700 text-white font-bold rounded uppercase text-[10px]">EDIÇÃO EXTRA ESPECIAL</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-white/70">{currentDateFormatted}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-center my-6 relative">
+                      <div className="inline-block relative">
+                        <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-white uppercase daily-planet-border px-6 py-2 border-white/20 inline-block">
+                          PLANETA DIÁRIO
+                        </h1>
+                        <span className="absolute -bottom-3 right-4 bg-[#0a0a0c] px-3 text-xs font-sans tracking-[0.3em] font-bold text-amber-500">
+                          O (JORNAL) DE EUDSON
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-b border-white/10 py-3 my-4 flex flex-col sm:flex-row justify-between items-center text-xs text-white/60 gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-sans text-amber-500 font-bold uppercase tracking-wider">LEITOR ASSOCIADO:</span>
+                        {isEditingReader ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              value={readerName}
+                              onChange={(e) => setReaderName(e.target.value)}
+                              onBlur={() => setIsEditingReader(false)}
+                              onKeyDown={(e) => e.key === "Enter" && setIsEditingReader(false)}
+                              className="bg-white/5 border border-white/10 px-2 py-0.5 rounded text-white focus:outline-none"
+                              autoFocus
+                              aria-label="Nome do leitor"
+                            />
+                            <button onClick={() => setIsEditingReader(false)} className="px-2 py-0.5 bg-emerald-800 text-white rounded cursor-pointer font-sans">
+                              Salvar
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-white font-bold font-sans">{readerName}</span>
+                            <button onClick={() => setIsEditingReader(true)} className="text-[10px] text-cyan-400 hover:underline cursor-pointer font-mono">
+                              [Alterar Nome]
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="relative mt-6 mb-2">
+                      <div className="text-center mb-3">
+                        <p className="text-[11px] font-sans uppercase tracking-widest text-white/50 flex items-center justify-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          Filtrar Projetos por Categoria
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-2 p-3 bg-black/80 rounded-xl border border-white/10 shadow-inner relative overflow-hidden">
+                        {CATEGORIES.map((cat) => (
+                          <CategoryButton
+                            key={cat.name}
+                            cat={cat}
+                            isActive={selectedCategory === cat.name}
+                            count={categoryCounts[cat.name] || 0}
+                            onClick={() => handleCategoryClick(cat.name)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </header>
+
+                <main id="main-content" className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <section className="lg:col-span-8 flex flex-col gap-8">
+                    <div className="border-b-2 border-white/10 pb-3 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                      <div>
+                        <p className="text-[10px] font-sans text-amber-500 uppercase tracking-widest">Categoria Selecionada</p>
+                        <h3 className="font-serif text-3xl font-black text-white uppercase">
+                          Seção: {selectedCategory}
+                        </h3>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-start md:justify-end">
+                        {isPolo ? (
+                          <ThemeToggle
+                            theme={poloTheme}
+                            setTheme={setPoloTheme}
+                            options={[
+                              { value: "red", label: "Vermelho", activeClass: "bg-red-600 text-white shadow-md shadow-red-600/30", dotClass: "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]" },
+                              { value: "blue", label: "Azul", activeClass: "bg-blue-600 text-white shadow-md shadow-blue-600/30", dotClass: "bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]" },
+                            ]}
+                          />
+                        ) : (
+                          <ThemeToggle
+                            theme={generalTheme}
+                            setTheme={setGeneralTheme}
+                            options={[
+                              { value: "blue", label: "Azul", activeClass: "bg-blue-600 text-white shadow-md shadow-blue-600/30", dotClass: "bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]" },
+                              { value: "neutral", label: "Neutro", activeClass: "bg-zinc-700 text-white shadow-md shadow-zinc-700/30", dotClass: "bg-zinc-400 shadow-[0_0_6px_rgba(255,255,255,0.8)]" },
+                            ]}
+                          />
+                        )}
+                        <span className="text-xs font-sans text-white/70 bg-white/5 px-3 py-1 rounded border border-white/10 flex items-center">
+                          {isPolo ? "Manchete Institucional" : `${filteredProjects.length} ${filteredProjects.length === 1 ? "Manchete Encontrada" : "Manchetes Encontradas"}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    {isPolo ? (
+                      <div className="flex flex-col gap-8 text-left">
+                        <div className={`rounded-2xl border-2 p-6 md:p-8 relative overflow-hidden shadow-xl transition-all duration-500 ${
+                          poloTheme === "blue"
+                            ? "border-blue-500/40 bg-gradient-to-br from-[#060a12] via-[#010205] to-[#03050c] shadow-blue-500/5"
+                            : "border-red-500/40 bg-gradient-to-br from-[#100608] via-[#050102] to-[#0c0305] shadow-red-500/5"
+                        }`}>
+                          <div className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
+                            poloTheme === "blue" ? "bg-blue-500/10" : "bg-red-500/10"
+                          }`} />
+                          <div className={`absolute -bottom-10 -left-10 w-36 h-36 rounded-full blur-3xl pointer-events-none ${
+                            poloTheme === "blue" ? "bg-cyan-500/10" : "bg-orange-500/10"
+                          }`} />
+
+                          <div className="flex justify-center items-center gap-4 mb-4">
+                            <span className="text-4xl animate-bounce">🦸‍♂️</span>
+                            <div className={`w-8 h-8 rounded-full animate-pulse ${
+                              poloTheme === "blue" ? "bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                            }`} />
+                            <span className="text-4xl animate-bounce" style={{ animationDelay: "0.2s" }}>⭐</span>
+                          </div>
+
+                          <div className="text-center mb-6 border-b border-white/10 pb-6">
+                            <h2 className="font-serif text-2xl md:text-3xl font-black text-white uppercase tracking-tight flex items-center justify-center gap-2">
+                              <span>🏫</span> COLÉGIO ESTADUAL UNIDADE POLO
+                            </h2>
+                            <p className={`text-xs md:text-sm font-sans tracking-widest font-bold uppercase mt-1 ${
+                              poloTheme === "blue" ? "text-blue-400" : "text-red-400"
+                            }`}>
+                              Ensino Médio + Curso Técnico · Formação de Excelência
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                            <div className={`flex flex-col justify-between border-l-4 bg-white/5 p-5 rounded-r-xl ${
+                              poloTheme === "blue" ? "border-blue-500" : "border-red-500"
+                            }`}>
+                              <div>
+                                <h3 className="font-serif text-lg font-bold text-white mb-3 flex items-center gap-2">
+                                  <span>‖</span> Sobre mim <span>‖</span>
+                                </h3>
+                                <p className="text-xs md:text-sm text-slate-200 leading-relaxed font-sans">
+                                  Oi.. meu nome é <strong className={`font-bold ${poloTheme === "blue" ? "text-blue-400" : "text-red-400"}`}>Eudson Felipe</strong>, tenho 16 anos e no momento desse portfólio estou cursando o ensino médio agregado com o curso técnico. Os meus gostos são: criação de jogos, gosto de séries, gosto também de me aprofundar em códigos de jogos. Meu ensino profissional está na base de Python, JavaScript, HTML, mas o meu conhecimento é básico.
+                                </p>
+                              </div>
+                              <div className={`mt-4 pt-3 border-t border-white/10 flex items-start gap-2 italic text-xs ${
+                                poloTheme === "blue" ? "text-blue-300" : "text-red-300"
+                              }`}>
+                                <span className="text-base">🎮</span>
+                                <span>&ldquo;Apaixonado por tecnologia e sempre em busca de novos desafios.&rdquo;</span>
+                              </div>
+                            </div>
+
+                            <div className="bg-white/5 border border-white/10 p-5 rounded-xl flex flex-col justify-between">
+                              <div>
+                                <h3 className="font-serif text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                                  <span>⚙️</span> stacks &amp; interesses
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                  {STACKS.map((stack) => (
+                                    <span
+                                      key={stack.name}
+                                      className={`px-3 py-1.5 border rounded-full text-xs font-bold flex items-center gap-1.5 transition-all hover:scale-105 hover:bg-white/5 cursor-default ${stack.color}`}
+                                    >
+                                      <span>{stack.emoji}</span>
+                                      <span>{stack.name}</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex flex-col sm:flex-row gap-2 mt-6">
+                                <a
+                                  href="https://www.linkedin.com/in/eudson-felipe-0226b9319/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="w-full py-2.5 px-4 bg-black hover:bg-zinc-950 text-white font-bold font-sans text-xs rounded-lg transition-all text-center uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer border border-cyan-500/50 hover:border-cyan-400 shadow-md hover:shadow-cyan-500/10 group"
+                                >
+                                  <span>ACESSE O MEU LINKEDIN</span>
+                                  <span className="group-hover:scale-110 transition-transform">🔗</span>
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                          <div className="text-center">
+                            <h3 className="font-serif text-2xl font-black text-white uppercase tracking-tight flex items-center justify-center gap-2">
+                              <span>🎓</span> Cursos técnicos integrados
+                            </h3>
+                            <div className={`w-16 h-1 mx-auto mt-2 rounded-full ${poloTheme === "blue" ? "bg-blue-500" : "bg-red-500"}`} />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {[
+                              { key: "ads", emoji: "💻", title: "ADS", subtitle: "TÉCNICO EM ANÁLISE DE SISTEMAS", top: "Análise e Desenvolvimento de Sistemas", bullets: ["Programação Web (JS, Python, HTML/CSS)", "Banco de Dados, Engenharia de Software"], ctaOpen: "📌 Ver matriz curricular »", ctaClose: "« Ocultar matriz curricular" },
+                              { key: "ia", emoji: "🧠", title: "IA", subtitle: "INTELIGÊNCIA ARTIFICIAL", top: "Inteligência Artificial (IA)", bullets: ["Machine Learning, Redes Neurais", "Processamento de Linguagem Natural"], ctaOpen: "📌 Explorar grade IA »", ctaClose: "« Ocultar grade de IA" },
+                            ].map((card) => (
+                              <div key={card.key} className={`rounded-xl border border-white/10 bg-black/40 p-6 flex flex-col justify-between transition-all group ${
+                                poloTheme === "blue" ? "hover:border-blue-500/30" : "hover:border-red-500/30"
+                              }`}>
+                                <div>
+                                  <div className="text-center mb-4">
+                                    <span className="text-3xl block mb-2 group-hover:scale-110 transition-transform">{card.emoji}</span>
+                                    <h4 className="font-serif text-xl font-bold text-white uppercase">{card.title}</h4>
+                                    <p className={`text-[10px] font-sans tracking-widest font-bold uppercase ${poloTheme === "blue" ? "text-blue-400" : "text-red-400"}`}>
+                                      {card.subtitle}
+                                    </p>
+                                  </div>
+                                  <ul className="space-y-3 text-xs md:text-sm text-slate-300 border-t border-white/5 pt-4">
+                                    <li className="flex items-center gap-2">
+                                      <span className="text-emerald-400">✔️</span>
+                                      <span>{card.top}</span>
+                                    </li>
+                                    {card.bullets.map((b) => (
+                                      <li key={b} className="flex items-center gap-2">
+                                        <span className={poloTheme === "blue" ? "text-blue-400" : "text-red-400"}>📌</span>
+                                        <span>{b}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <button
+                                  onClick={() => setActiveSyllabus(activeSyllabus === card.key ? null : card.key)}
+                                  aria-expanded={activeSyllabus === card.key}
+                                  className={`w-full mt-6 py-2 font-bold font-sans text-xs rounded-lg transition-all uppercase tracking-wider cursor-pointer border ${
+                                    poloTheme === "blue"
+                                      ? "bg-blue-950/30 hover:bg-blue-950/60 text-blue-300 border-blue-500/20 hover:border-blue-500/40"
+                                      : "bg-red-950/30 hover:bg-red-950/60 text-red-300 border-red-500/20 hover:border-red-500/40"
+                                  }`}
+                                >
+                                  {activeSyllabus === card.key ? card.ctaClose : card.ctaOpen}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          {activeSyllabus && <SyllabusDrawer data={SYLLABUS[activeSyllabus]} poloTheme={poloTheme} />}
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                          <div className="text-center">
+                            <h3 className="font-serif text-2xl font-black text-white uppercase tracking-tight flex items-center justify-center gap-2">
+                              <span>📍</span> LOCALIZAÇÃO E ATENDIMENTO <span>👨‍💼</span>
+                            </h3>
+                            <div className={`w-16 h-1 mx-auto mt-2 rounded-full ${poloTheme === "blue" ? "bg-blue-500" : "bg-red-500"}`} />
+                          </div>
+
+                          <div className={`rounded-2xl border bg-black/40 overflow-hidden relative group ${
+                            poloTheme === "blue" ? "border-white/10 hover:border-blue-500/30" : "border-white/10 hover:border-red-500/30"
+                          }`}>
+                            <div className="h-64 relative bg-zinc-950 flex items-center justify-center overflow-hidden">
+                              <iframe
+                                title="Mapa do Colégio Estadual Unidade Polo"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3663.8159826359556!2d-51.4287869!3d-23.4130099!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94eb1303ba67b84f%3A0xcb13e9a4f6cfc79e!2sCol%C3%A9gio%20Estadual%20Unidade%20Polo!5e0!3m2!1spt-BR!2sbr!4v1720442400000!5m2!1spt-BR!2sbr"
+                                width="100%"
+                                height="100%"
+                                style={{ border: 0, filter: "invert(90%) hue-rotate(180deg) contrast(120%) brightness(95%)" }}
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-80 transition-opacity duration-500"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
+                              <a
+                                href="https://www.google.com/maps/search/?api=1&query=Col%C3%A9gio+Estadual+Unidade+Polo+Arapongas"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`relative z-10 px-6 py-3 text-white font-bold font-sans text-xs rounded-xl transition-all flex items-center gap-2 cursor-pointer uppercase tracking-wider shadow-lg ${
+                                  poloTheme === "blue"
+                                    ? "bg-blue-600 hover:bg-blue-500 active:bg-blue-700 hover:shadow-blue-500/20"
+                                    : "bg-red-600 hover:bg-red-500 active:bg-red-700 hover:shadow-red-500/20"
+                                }`}
+                              >
+                                <span>📍 Clique aqui para ir para o local exato 🔍</span>
+                              </a>
+                              <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[9px] font-mono text-white/40 tracking-wider bg-black/60 px-2 py-1 rounded">
+                                🔽 Clique na área acima para ampliar o mapa 🔽
+                              </span>
+                            </div>
+
+                            <div className={`p-6 md:p-8 border-t border-white/10 ${poloTheme === "blue" ? "bg-[#040810]" : "bg-[#0d0406]"}`}>
+                              <div className="mb-8 border-b border-white/5 pb-6 flex items-start gap-3">
+                                <span className={`text-2xl mt-1 ${poloTheme === "blue" ? "text-blue-400" : "text-red-400"}`}>📌</span>
+                                <div>
+                                  <h5 className={`font-serif text-sm font-bold uppercase tracking-wider mb-1 ${poloTheme === "blue" ? "text-blue-400" : "text-red-400"}`}>
+                                    Endereço oficial:
+                                  </h5>
+                                  <p className="text-sm md:text-base text-slate-100 font-bold">R. Pavão, 831 - Centro, Arapongas - PR, 86700-215</p>
+                                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${poloTheme === "blue" ? "bg-blue-500" : "bg-red-500"}`} />
+                                    Colégio Estadual Unidade Polo
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                <div className="bg-black/30 border border-white/5 p-5 rounded-xl">
+                                  <h5 className="font-serif text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <span>📞</span> Contato
+                                  </h5>
+                                  <div className="space-y-3">
+                                    <div className={`p-3 rounded-lg flex items-center justify-between transition-all border ${
+                                      poloTheme === "blue"
+                                        ? "bg-blue-950/20 border-blue-500/10 group-hover:border-blue-500/30"
+                                        : "bg-red-950/20 border-red-500/10 group-hover:border-red-500/30"
+                                    }`}>
+                                      <span className={`font-mono text-sm font-bold ${poloTheme === "blue" ? "text-blue-300" : "text-red-300"}`}>
+                                        (43) 3274-4471
+                                      </span>
+                                      <a href="tel:4332744471" className={`text-[10px] font-sans hover:underline uppercase tracking-wider ${poloTheme === "blue" ? "text-blue-400" : "text-red-400"}`}>
+                                        [ Ligar Agora ]
+                                      </a>
+                                    </div>
+                                    <div className="flex items-center gap-2 p-2 bg-black/20 rounded border border-white/5 text-xs text-slate-300">
+                                      <span>📧</span>
+                                      <span className="font-mono">contato@colegiopolo.pr.edu.br</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="bg-black/30 border border-white/5 p-5 rounded-xl">
+                                  <h5 className="font-serif text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <span>⏰</span> Horário de funcionamento
+                                  </h5>
+                                  <div className="space-y-2 text-xs md:text-sm font-sans text-slate-300">
+                                    {HOURS_DATA.map((item) => (
+                                      <div key={item.day} className="flex justify-between items-center py-1 border-b border-white/5 last:border-0 font-sans">
+                                        <span className="capitalize font-bold text-slate-400">{item.day}</span>
+                                        <span className={`font-mono text-xs ${item.open ? "text-slate-100" : `font-bold ${poloTheme === "blue" ? "text-blue-400" : "text-red-400"}`}`}>
+                                          {item.hours}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="relative">
+                          <div className="absolute left-3 top-3.5 text-white/40 pointer-events-none">
+                            <Icon name="search" className="w-4 h-4" />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Pesquisar nos arquivos confidenciais do Planeta Diário..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            aria-label="Pesquisar projetos"
+                            className="w-full bg-white/5 border border-white/10 focus:border-cyan-500 rounded-xl py-3 pl-10 pr-10 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                          />
+                          {searchQuery && (
+                            <button
+                              onClick={() => setSearchQuery("")}
+                              aria-label="Limpar busca"
+                              className="absolute right-3 top-3 text-white/40 hover:text-white cursor-pointer"
+                            >
+                              <Icon name="x" className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {filteredProjects.length === 0 ? (
+                          <div className="text-center py-16 bg-white/5 rounded-2xl border border-white/10">
+                            <p className="text-lg font-serif text-white/50">Nenhuma manchete catalogada nesta categoria.</p>
+                            <p className="text-xs text-white/30 mt-2 font-mono">Tente refinar sua pesquisa ou selecione "Todos".</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {filteredProjects.map((proj) => (
+                              <ProjectCard
+                                key={proj.id}
+                                proj={proj}
+                                isSelected={selectedProject?.id === proj.id}
+                                theme={generalTheme}
+                                onSelect={setSelectedProject}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        {selectedProject && (
+                          <div className="bg-[#0c0c0e] border border-white/10 rounded-2xl p-6 md:p-8 text-left relative overflow-hidden">
+                            <div className="absolute top-3 right-4 flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                              <span className="font-sans text-[10px] text-white/40">MÁQUINA DE ESCREVER ATIVA</span>
+                            </div>
+
+                            <p className="text-xs font-sans text-amber-500 uppercase tracking-widest mb-1">[ ARQUIVO DE REDAÇÃO DETALHADA ]</p>
+
+                            <h3 className="font-serif text-3xl font-black text-white tracking-tight leading-tight uppercase border-b-4 border-white/25 pb-3 mb-4">
+                              {selectedProject.headline}
+                            </h3>
+
+                            <div className="flex flex-wrap justify-between items-center text-xs font-sans text-white/50 mb-6 gap-2">
+                              <div>
+                                <span>MATÉRIA PRINCIPAL: </span>
+                                <strong className="text-white uppercase">{selectedProject.title}</strong>
+                              </div>
+                              <div>
+                                <span>DATA DE ARQUIVO: </span>
+                                <strong className="text-white">{selectedProject.date}</strong>
+                              </div>
+                            </div>
+
+                            <div className="bg-black/40 border border-white/10 p-5 rounded-xl mb-6 relative">
+                              <p className="text-xs font-sans text-white/35 mb-2 uppercase">Lançamento de Teletipo:</p>
+                              <Typewriter text={selectedProject.description} speed={12} />
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <a
+                                href={selectedProject.link || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 py-3 px-5 bg-black hover:bg-zinc-900 text-white hover:text-yellow-400 font-bold font-sans text-xs rounded-lg transition-all text-center uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer border-2 border-zinc-800 hover:border-amber-500 shadow-lg shadow-black hover:shadow-amber-500/10 group"
+                              >
+                                <span className="font-serif font-black bg-gradient-to-br from-yellow-400 to-amber-500 text-red-600 rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md select-none border border-red-600 group-hover:scale-110 transition-transform">S</span>
+                                <span>Abrir Projeto Externo</span>
+                                <Icon name="external-link" className="w-4 h-4 text-zinc-500 group-hover:text-yellow-400 transition-colors" />
+                              </a>
+                              <button
+                                onClick={() => showToast(`Iniciando simulação de "${selectedProject.title}" no terminal da Watchtower...`)}
+                                className="flex-1 py-3 px-5 bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold font-mono text-xs rounded-lg transition-all border border-slate-800 hover:border-slate-700 uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                              >
+                                <Icon name="cpu" className="w-4 h-4 text-emerald-400" />
+                                Verificar Depuração de Código
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </section>
+
+                  <aside className="lg:col-span-4 flex flex-col gap-8">
+                    <GreenArrowPanel
+                      selectedCategory={selectedCategory}
+                      poloTheme={poloTheme}
+                      generalTheme={generalTheme}
+                      arrowTargetsHit={arrowTargetsHit}
+                      greenArrowUnlockedSecrets={greenArrowUnlockedSecrets}
+                      arrowStatusText={arrowStatusText}
+                      motivationalPhrase={motivationalPhrase}
+                      onShoot={shootTarget}
+                      onReset={resetArcheryTargets}
+                      onNewPhrase={refreshMotivationalPhrase}
+                    />
+
+                    <div className="bg-[#0c0c0e] border border-white/10 rounded-2xl p-6 text-left relative overflow-hidden">
+                      <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl" />
+                      <h3 className="font-serif text-xl font-bold text-white uppercase mb-3 border-b border-white/10 pb-2">
+                        Sobre o Repórter
+                      </h3>
+                      <div className="flex gap-4 items-start mb-4">
+                        <div className="w-16 h-16 rounded-lg bg-[#050508] border border-white/10 shrink-0 flex items-center justify-center font-serif text-3xl font-black text-amber-500">
+                          EF
+                        </div>
+                        <div>
+                          <h4 className="font-serif font-bold text-white">Eudson Felipe</h4>
+                          <p className="text-xs text-amber-500 font-sans tracking-wide">Estudante &amp; Desenvolvedor</p>
+                          <p className="text-[10px] text-white/50">Colégio Estadual Unidade Polo de Arapongas</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-white/70 leading-relaxed mb-4 font-sans">
+                        Estudante ativo do <strong>Colégio Estadual Unidade Polo de Arapongas</strong>, desenvolvendo projetos inovadores em JavaScript, HTML, Python e apresentações interativas, aplicando tecnologia para resolver desafios e criar o futuro.
+                      </p>
+                      <div className="bg-black/50 p-3 rounded-lg border border-white/10">
+                        <span className="text-[10px] font-sans text-amber-500 block mb-1 uppercase tracking-wider">LEMA ESTUDANTIL:</span>
+                        <p className="text-xs font-serif italic text-white/60">&ldquo;A educação e a tecnologia caminham juntas para abrir novos horizontes e transformar o conhecimento em soluções reais.&rdquo;</p>
+                      </div>
+                    </div>
+                  </aside>
+                </main>
+
+                <footer className="bg-[#0a0a0c] border-t-2 border-white/10 py-8 text-center text-white/40 text-xs font-sans px-4 mt-auto">
+                  <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="text-left">
+                      <p className="font-serif text-white font-bold">© 2026 PLANETA DIÁRIO INC.</p>
+                      <p className="text-[11px] text-white/30">Desenvolvido em homenagem à série histórica de Smallville.</p>
+                    </div>
+                  </div>
+                </footer>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      const rootElement = document.getElementById("root");
+      if (ReactDOM.createRoot) {
+        ReactDOM.createRoot(rootElement).render(<App />);
+      } else {
+        ReactDOM.render(<App />, rootElement);
+      }
+    </script>
+  </body>
+</html>
